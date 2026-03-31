@@ -1,0 +1,14 @@
+{
+  "name": "inventory-agent",
+  "version": "1.0.0",
+  "description": "AI inventory management for small businesses",
+  "main": "src/index.js",
+  "scripts": { "start": "node src/index.js" },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "better-sqlite3": "^9.4.3",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.0",
+    "xlsx": "^0.18.5"
+  }
+}
