@@ -2,6 +2,66 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
+
+// ── Integration: notify accounting agent of movements ─────────────────────────
+const ACCOUNTING_URL = process.env.ACCOUNTING_URL || 'http://localhost:3002';
+
+// Notify accounting agent — groups all movements of a session into ONE transaction
+async function notifyAccountingAgentBatch(userId, movements) {
+  try {
+    if (!movements || movements.length === 0) return;
+
+    const isIncome = movements[0].type === 'salida';
+    const totalAmount = movements.reduce((sum, m) => sum + (m.total || 0), 0);
+    if (totalAmount === 0) return; // nothing to record
+
+    const productLines = movements.map(m => `${m.product_name} x${m.quantity}`).join(', ');
+    const date = new Date().toISOString().split('T')[0];
+
+    const payload = {
+      userId,
+      transactions: [{
+        date,
+        amount: isIncome ? totalAmount : -totalAmount,
+        currency: 'COP',
+        description: isIncome
+          ? `Venta: ${productLines}`
+          : `Compra de mercancía: ${productLines}`,
+        category: isIncome ? 'Ingresos operacionales' : 'Costos de inventario',
+        puc_code: isIncome ? '4135' : '6135',
+        type: isIncome ? 'income' : 'expense',
+        source: 'Inventory Agent',
+        deductible: true,
+        confidence: 'high'
+      }]
+    };
+
+    const data = JSON.stringify(payload);
+    const urlObj = new URL(`${ACCOUNTING_URL}/transactions/confirm`);
+    const options = {
+      hostname: urlObj.hostname,
+      port: parseInt(urlObj.port) || 3002,
+      path: urlObj.pathname,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) }
+    };
+
+    await new Promise((resolve) => {
+      const req = http.request(options, (res) => {
+        res.on('data', () => {});
+        res.on('end', resolve);
+      });
+      req.on('error', () => resolve());
+      req.write(data);
+      req.end();
+    });
+
+    console.log(`📊 Accounting sync: ${isIncome ? 'ingreso' : 'gasto'} $${totalAmount.toLocaleString('es-CO')} COP → ${productLines}`);
+  } catch (e) {
+    // Don't break inventory if accounting is down
+  }
+}
 
 const {
   getUser, createUser,
@@ -235,6 +295,7 @@ app.post('/actions/confirm', (req, res) => {
 
   // Handle entrada / salida confirmation
   const processed = [];
+  const processedMovements = [];
   const notFound = [];
 
   for (const item of (pending.products || [])) {
@@ -249,23 +310,40 @@ app.post('/actions/confirm', (req, res) => {
       : Math.max(0, product.stock - item.quantity);
 
     updateStock(product.id, newStock);
-    addMovement({
+
+    // Use product price as default if user didn't specify
+    const defaultPrice = pending.action === 'salida'
+      ? (product.sell_price || 0)
+      : (product.cost_price || 0);
+    const unitPrice = item.unit_price > 0 ? item.unit_price : defaultPrice;
+
+    const movement = {
       user_id: userId,
       product_id: product.id,
       product_name: product.name,
       type: pending.action,
       quantity: item.quantity,
-      unit_price: item.unit_price || 0,
-      total: (item.unit_price || 0) * item.quantity
-    });
+      unit_price: unitPrice,
+      total: unitPrice * item.quantity
+    };
+    addMovement(movement);
+    processedMovements.push(movement);
     processed.push({ name: product.name, quantity: item.quantity, newStock });
   }
 
   delete pendingActions[userId];
 
+  // Batch notify accounting agent (one transaction for the whole operation)
+  notifyAccountingAgentBatch(userId, processedMovements);
+
   const actionLabel = pending.action === 'entrada' ? 'Entrada' : 'Salida';
+  const totalVenta = processedMovements.reduce((s, m) => s + m.total, 0);
   let reply = `✅ ${actionLabel} registrada:\n`;
   reply += processed.map(p => `• ${p.name}: ${p.quantity} uds (stock: ${p.newStock})`).join('\n');
+  if (totalVenta > 0) {
+    reply += `\n💰 Total: $${new Intl.NumberFormat('es-CO').format(totalVenta)} COP`;
+    reply += `\n📊 Registrado automáticamente en contabilidad`;
+  }
 
   if (notFound.length > 0) {
     reply += `\n\n⚠️ No encontrados: ${notFound.join(', ')}`;
