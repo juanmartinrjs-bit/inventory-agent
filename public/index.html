@@ -249,7 +249,21 @@
     <span>Productos: <strong id="stat-products">–</strong></span>
     <span>Stock bajo: <strong id="stat-low">–</strong></span>
     <span>Valor: <strong id="stat-value">–</strong></span>
-    <span>Hoy: <strong id="stat-today">–</strong> mov.</span>
+  </div>
+
+  <!-- Sales ticker -->
+  <div id="sales-ticker" style="background:#e65100;color:white;padding:5px 16px;font-size:12px;display:flex;align-items:center;gap:10px;min-height:28px;cursor:pointer;" onclick="toggleSalesBreakdown()" title="Click para ver desglose">
+    <span style="opacity:0.8;white-space:nowrap">💰 Ventas:</span>
+    <div id="ticker-content" style="flex:1;overflow:hidden;position:relative;height:18px;">
+      <span id="ticker-total" style="font-weight:700;">–</span>
+    </div>
+    <span id="ticker-toggle" style="opacity:0.7;font-size:11px;">▼ desglose</span>
+  </div>
+
+  <!-- Sales breakdown (hidden by default) -->
+  <div id="sales-breakdown" style="display:none;background:#fff8f0;border-bottom:2px solid #e65100;padding:10px 16px;max-height:180px;overflow-y:auto;">
+    <div style="font-size:12px;font-weight:700;color:#e65100;margin-bottom:6px;">📊 Ventas por producto</div>
+    <div id="breakdown-list" style="font-size:13px;"></div>
   </div>
 
   <!-- Messages -->
@@ -265,6 +279,7 @@
     <button class="quick-btn" onclick="quickSend('muéstrame todo el inventario')">📦 Ver Stock</button>
     <button class="quick-btn" onclick="quickSend('¿qué productos tienen stock bajo?')">⚠️ Stock Bajo</button>
     <button class="quick-btn" onclick="quickSend('genera un reporte de inventario')">📊 Reporte</button>
+    <button class="quick-btn" onclick="toggleSalesBreakdown()">💰 Ver Ventas</button>
   </div>
 
   <!-- Input -->
@@ -466,11 +481,114 @@
     }
   }
 
+  // ── Sales ticker ──────────────────────────────────────────────────────────
+  let salesData = { totalVentas: 0, breakdown: [] };
+  let tickerInterval = null;
+  let tickerIndex = 0;
+  let breakdownVisible = false;
+
+  async function updateSales() {
+    try {
+      const res = await fetch(`/sales/${userId}`);
+      salesData = await res.json();
+      renderTicker();
+      if (breakdownVisible) renderBreakdown();
+    } catch (e) {}
+  }
+
+  function renderTicker() {
+    const totalEl = document.getElementById('ticker-total');
+    const { totalVentas, breakdown } = salesData;
+
+    if (totalVentas === 0) {
+      totalEl.textContent = 'Sin ventas registradas';
+      return;
+    }
+
+    // Show total + cycle through products
+    if (breakdown.length === 0) {
+      totalEl.textContent = `$${formatNum(totalVentas)} COP`;
+      return;
+    }
+
+    // Start cycling animation
+    if (tickerInterval) clearInterval(tickerInterval);
+
+    function showTick() {
+      if (tickerIndex === 0) {
+        // Show total
+        totalEl.style.opacity = '0';
+        setTimeout(() => {
+          totalEl.textContent = `$${formatNum(totalVentas)} COP total`;
+          totalEl.style.opacity = '1';
+        }, 200);
+      } else {
+        // Show product breakdown
+        const item = breakdown[(tickerIndex - 1) % breakdown.length];
+        const pct = totalVentas > 0 ? Math.round((item.total / totalVentas) * 100) : 0;
+        totalEl.style.opacity = '0';
+        setTimeout(() => {
+          totalEl.textContent = `${item.name}: $${formatNum(item.total)} COP (${pct}%)`;
+          totalEl.style.opacity = '1';
+        }, 200);
+      }
+      tickerIndex = (tickerIndex + 1) % (breakdown.length + 1);
+    }
+
+    showTick();
+    tickerInterval = setInterval(showTick, 3000);
+  }
+
+  function renderBreakdown() {
+    const listEl = document.getElementById('breakdown-list');
+    const { totalVentas, breakdown } = salesData;
+
+    if (breakdown.length === 0) {
+      listEl.innerHTML = '<div style="color:#999;font-size:12px;">Sin ventas aún</div>';
+      return;
+    }
+
+    listEl.innerHTML = breakdown.map(item => {
+      const pct = totalVentas > 0 ? Math.round((item.total / totalVentas) * 100) : 0;
+      const barWidth = Math.max(pct, 2);
+      return `
+        <div style="margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
+            <span style="color:#444;">${item.name}</span>
+            <span style="color:#e65100;font-weight:700;">$${formatNum(item.total)} <span style="color:#999;font-weight:400;">(${pct}%)</span></span>
+          </div>
+          <div style="background:#f0e0d0;border-radius:4px;height:6px;">
+            <div style="background:#e65100;width:${barWidth}%;height:6px;border-radius:4px;transition:width 0.5s;"></div>
+          </div>
+          <div style="color:#999;font-size:11px;">${item.quantity} unidades vendidas</div>
+        </div>`;
+    }).join('');
+
+    // Total row
+    listEl.innerHTML += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid #e0d0c0;font-weight:700;color:#e65100;">
+      Total: $${formatNum(totalVentas)} COP
+    </div>`;
+  }
+
+  function toggleSalesBreakdown() {
+    const panel = document.getElementById('sales-breakdown');
+    const toggle = document.getElementById('ticker-toggle');
+    breakdownVisible = !breakdownVisible;
+    panel.style.display = breakdownVisible ? 'block' : 'none';
+    toggle.textContent = breakdownVisible ? '▲ ocultar' : '▼ desglose';
+    if (breakdownVisible) renderBreakdown();
+  }
+
+  // Add transition to ticker text
+  document.getElementById('ticker-total').style.transition = 'opacity 0.2s';
+
   // Initial load
   updateStats();
+  updateSales();
 
   // Refresh stats every 30 seconds
   setInterval(updateStats, 30000);
+  setInterval(updateSales, 15000);
 </script>
 </body>
 </html>

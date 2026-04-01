@@ -142,6 +142,32 @@ app.get('/stats/:userId', (req, res) => {
   });
 });
 
+// ---- GET /sales/:userId ----  ventas del período actual con desglose por producto
+app.get('/sales/:userId', (req, res) => {
+  const { userId } = req.params;
+  getOrCreateUser(userId);
+  const allMovements = getMovements(userId, 1000);
+  const ventas = allMovements.filter(m => m.type === 'salida');
+
+  // Total general
+  const totalVentas = ventas.reduce((s, m) => s + (m.total || 0), 0);
+
+  // Desglose por producto
+  const byProduct = {};
+  ventas.forEach(m => {
+    if (!byProduct[m.product_name]) byProduct[m.product_name] = { total: 0, quantity: 0 };
+    byProduct[m.product_name].total += m.total || 0;
+    byProduct[m.product_name].quantity += m.quantity || 0;
+  });
+
+  // Ordenar de mayor a menor
+  const breakdown = Object.entries(byProduct)
+    .map(([name, data]) => ({ name, total: data.total, quantity: data.quantity }))
+    .sort((a, b) => b.total - a.total);
+
+  res.json({ totalVentas, breakdown });
+});
+
 // ---- GET /products/:userId ----
 app.get('/products/:userId', (req, res) => {
   const { userId } = req.params;
