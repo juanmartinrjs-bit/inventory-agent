@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📦 Panel de Control — Inventario IA</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f0eb;
+      min-height: 100vh;
+      color: #333;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────────── */
+    #header {
+      background: linear-gradient(135deg, #e65100, #bf360c);
+      color: white;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    #header h1 { font-size: 18px; font-weight: 700; flex: 1; }
+    #user-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #userId-input {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 8px;
+      color: white;
+      padding: 5px 10px;
+      font-size: 12px;
+      width: 180px;
+      outline: none;
+    }
+    #userId-input::placeholder { color: rgba(255,255,255,0.6); }
+    #userId-input:focus { border-color: white; background: rgba(255,255,255,0.3); }
+    #refresh-btn {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.5);
+      color: white;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    #refresh-btn:hover { background: rgba(255,255,255,0.35); }
+    #back-btn {
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      font-size: 12px;
+    }
+    #back-btn:hover { color: white; }
+
+    /* ── Main Content ────────────────────────────────────────────────────── */
+    #content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px 20px;
+    }
+
+    /* ── KPI Cards ───────────────────────────────────────────────────────── */
+    #kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border-left: 4px solid #e65100;
+    }
+    .kpi-card .kpi-label {
+      font-size: 12px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .kpi-card .kpi-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #333;
+      line-height: 1.2;
+    }
+    .kpi-card .kpi-icon {
+      font-size: 28px;
+      float: right;
+      margin-top: -8px;
+    }
+    .kpi-card.danger { border-left-color: #e53935; }
+    .kpi-card.danger .kpi-value { color: #e53935; }
+
+    /* ── Charts ──────────────────────────────────────────────────────────── */
+    #charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .chart-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .chart-card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #e65100;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #f5e6dc;
+    }
+    .chart-container {
+      position: relative;
+      height: 280px;
+    }
+
+    /* ── Tables ──────────────────────────────────────────────────────────── */
+    .table-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+    }
+    .table-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #e65100;
+      margin-bottom: 14px;
+    }
+    .table-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .table-controls input[type="text"],
+    .table-controls input[type="date"] {
+      border: 1px solid #e0d6cc;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 13px;
+      outline: none;
+    }
+    .table-controls input:focus { border-color: #e65100; }
+    .filter-btn {
+      background: #f5f0eb;
+      border: 1px solid #e0d6cc;
+      color: #555;
+      padding: 7px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.15s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      background: #e65100;
+      color: white;
+      border-color: #e65100;
+    }
+    .search-box {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    thead th {
+      background: #fdf6ee;
+      color: #555;
+      font-weight: 600;
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 2px solid #f0e0d0;
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+    }
+    thead th:hover { background: #f5e6dc; color: #e65100; }
+    thead th.sort-asc::after { content: ' ↑'; color: #e65100; }
+    thead th.sort-desc::after { content: ' ↓'; color: #e65100; }
+    tbody tr:hover { background: #fdf6ee; }
+    tbody td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #f5f0eb;
+      color: #444;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-ok { background: #e8f5e9; color: #2e7d32; }
+    .badge-bajo { background: #fff3e0; color: #e65100; }
+    .badge-agotado { background: #ffebee; color: #e53935; }
+    .badge-entrada { background: #e8f5e9; color: #2e7d32; }
+    .badge-salida { background: #fff3e0; color: #e65100; }
+
+    /* ── Pagination ──────────────────────────────────────────────────────── */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .pagination button {
+      background: #f5f0eb;
+      border: 1px solid #e0d6cc;
+      color: #555;
+      padding: 6px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .pagination button:hover:not(:disabled) { background: #e65100; color: white; border-color: #e65100; }
+    .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .pagination .page-info { font-size: 13px; color: #888; }
+
+    /* ── Loading / Error ─────────────────────────────────────────────────── */
+    #loading {
+      text-align: center;
+      padding: 60px;
+      color: #888;
+      font-size: 16px;
+    }
+    #error-msg {
+      background: #ffebee;
+      color: #e53935;
+      border: 1px solid #ef9a9a;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    /* ── Responsive ──────────────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      #kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      #charts-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      #header h1 { font-size: 14px; }
+      #kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      #userId-input { width: 120px; }
+      .kpi-card .kpi-value { font-size: 18px; }
+      table { font-size: 12px; }
+      tbody td, thead th { padding: 7px 8px; }
+    }
+    @media (max-width: 420px) {
+      #kpi-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div id="header">
+  <h1>📦 Panel de Control — Inventario IA</h1>
+  <div id="user-controls">
+    <input type="text" id="userId-input" placeholder="ID de usuario" />
+    <button id="refresh-btn" onclick="loadData()">🔄 Actualizar</button>
+    <a href="/" id="back-btn">💬 Chat</a>
+  </div>
+</div>
+
+<!-- Content -->
+<div id="content">
+  <div id="error-msg"></div>
+  <div id="loading">⏳ Cargando datos...</div>
+
+  <div id="dashboard" style="display:none;">
+
+    <!-- KPI Cards -->
+    <div id="kpi-grid">
+      <div class="kpi-card">
+        <span class="kpi-icon">📦</span>
+        <div class="kpi-label">Total Productos</div>
+        <div class="kpi-value" id="kpi-products">–</div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-icon">💰</span>
+        <div class="kpi-label">Valor Inventario (COP)</div>
+        <div class="kpi-value" id="kpi-value">–</div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-icon">🛒</span>
+        <div class="kpi-label">Ventas Totales (COP)</div>
+        <div class="kpi-value" id="kpi-ventas">–</div>
+      </div>
+      <div class="kpi-card" id="kpi-lowstock-card">
+        <span class="kpi-icon">⚠️</span>
+        <div class="kpi-label">Stock Bajo</div>
+        <div class="kpi-value" id="kpi-lowstock">–</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div id="charts-grid">
+      <div class="chart-card">
+        <h3>📊 Top 10 Ventas por Producto</h3>
+        <div class="chart-container">
+          <canvas id="salesChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3>🗂️ Estado del Inventario</h3>
+        <div class="chart-container">
+          <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products Table -->
+    <div class="table-card">
+      <h3>📦 Inventario Actual</h3>
+      <div class="table-controls">
+        <input type="text" class="search-box" id="product-search" placeholder="🔍 Buscar por nombre..." oninput="filterProducts()" />
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="products-table">
+          <thead>
+            <tr>
+              <th onclick="sortProducts('name')">Nombre</th>
+              <th onclick="sortProducts('category')">Categoría</th>
+              <th onclick="sortProducts('stock')">Stock</th>
+              <th onclick="sortProducts('unit')">Unidad</th>
+              <th onclick="sortProducts('min_stock')">Stock Mín</th>
+              <th onclick="sortProducts('cost_price')">Precio Compra</th>
+              <th onclick="sortProducts('sell_price')">Precio Venta</th>
+              <th onclick="sortProducts('valor')">Valor</th>
+              <th onclick="sortProducts('status')">Estado</th>
+            </tr>
+          </thead>
+          <tbody id="products-tbody"></tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <button id="prod-prev" onclick="productPage--; renderProductsPage()">← Anterior</button>
+        <span class="page-info" id="prod-page-info"></span>
+        <button id="prod-next" onclick="productPage++; renderProductsPage()">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- Movements Table -->
+    <div class="table-card">
+      <h3>📋 Últimos Movimientos</h3>
+      <div class="table-controls">
+        <button class="filter-btn active" id="mov-filter-all" onclick="setMovFilter('all')">Todos</button>
+        <button class="filter-btn" id="mov-filter-entrada" onclick="setMovFilter('entrada')">📥 Entradas</button>
+        <button class="filter-btn" id="mov-filter-salida" onclick="setMovFilter('salida')">📤 Salidas</button>
+        <input type="date" id="mov-date-from" onchange="filterMovements()" title="Desde" />
+        <input type="date" id="mov-date-to" onchange="filterMovements()" title="Hasta" />
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="movements-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Producto</th>
+              <th>Tipo</th>
+              <th>Cantidad</th>
+              <th>Precio Unit.</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="movements-tbody"></tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <button id="mov-prev" onclick="movPage--; renderMovementsPage()">← Anterior</button>
+        <span class="page-info" id="mov-page-info"></span>
+        <button id="mov-next" onclick="movPage++; renderMovementsPage()">Siguiente →</button>
+      </div>
+    </div>
+
+  </div><!-- /#dashboard -->
+</div><!-- /#content -->
+
+<script>
+  // ── State ─────────────────────────────────────────────────────────────────
+  let allProducts = [];
+  let allMovements = [];
+  let filteredProducts = [];
+  let filteredMovements = [];
+  let productPage = 1;
+  let movPage = 1;
+  const PAGE_SIZE = 20;
+
+  let productSortCol = null;
+  let productSortDir = 'asc';
+  let movFilterType = 'all';
+
+  let salesChartInstance = null;
+  let statusChartInstance = null;
+
+  // ── User ID ───────────────────────────────────────────────────────────────
+  const userIdInput = document.getElementById('userId-input');
+  let userId = localStorage.getItem('inventory_user_id') || 'default';
+  userIdInput.value = userId;
+  userIdInput.addEventListener('change', () => {
+    userId = userIdInput.value.trim() || 'default';
+    localStorage.setItem('inventory_user_id', userId);
+    loadData();
+  });
+
+  // ── Load Data ─────────────────────────────────────────────────────────────
+  async function loadData() {
+    userId = userIdInput.value.trim() || 'default';
+    showLoading(true);
+    hideError();
+
+    try {
+      const res = await fetch(`/dashboard/data/${encodeURIComponent(userId)}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      renderKPIs(data.stats, data.inventoryStatus);
+      renderCharts(data.salesBreakdown, data.inventoryStatus);
+
+      allProducts = data.products || [];
+      allMovements = data.movements || [];
+
+      filteredProducts = [...allProducts];
+      filteredMovements = [...allMovements];
+
+      productPage = 1;
+      movPage = 1;
+
+      renderProductsPage();
+      renderMovementsPage();
+
+      showLoading(false);
+    } catch (e) {
+      showLoading(false);
+      showError('Error cargando datos: ' + e.message);
+    }
+  }
+
+  function showLoading(show) {
+    document.getElementById('loading').style.display = show ? 'block' : 'none';
+    document.getElementById('dashboard').style.display = show ? 'none' : 'block';
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error-msg');
+    el.textContent = msg;
+    el.style.display = 'block';
+    document.getElementById('dashboard').style.display = 'block';
+  }
+
+  function hideError() {
+    document.getElementById('error-msg').style.display = 'none';
+  }
+
+  // ── KPIs ──────────────────────────────────────────────────────────────────
+  function renderKPIs(stats, inventoryStatus) {
+    document.getElementById('kpi-products').textContent = stats.totalProducts;
+    document.getElementById('kpi-value').textContent = formatCOP(stats.inventoryValue);
+    document.getElementById('kpi-ventas').textContent = formatCOP(stats.totalVentas);
+    document.getElementById('kpi-lowstock').textContent = stats.lowStockCount;
+
+    const lowCard = document.getElementById('kpi-lowstock-card');
+    if (stats.lowStockCount > 0) {
+      lowCard.classList.add('danger');
+    } else {
+      lowCard.classList.remove('danger');
+    }
+  }
+
+  // ── Charts ────────────────────────────────────────────────────────────────
+  function renderCharts(salesBreakdown, inventoryStatus) {
+    // Sales bar chart
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    if (salesChartInstance) salesChartInstance.destroy();
+
+    if (salesBreakdown.length === 0) {
+      salesChartInstance = new Chart(salesCtx, {
+        type: 'bar',
+        data: { labels: ['Sin datos'], datasets: [{ data: [0] }] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } }
+        }
+      });
+    } else {
+      salesChartInstance = new Chart(salesCtx, {
+        type: 'bar',
+        data: {
+          labels: salesBreakdown.map(s => s.name),
+          datasets: [{
+            label: 'Ventas COP',
+            data: salesBreakdown.map(s => s.total),
+            backgroundColor: 'rgba(230, 81, 0, 0.75)',
+            borderColor: '#e65100',
+            borderWidth: 1,
+            borderRadius: 4,
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ' $' + formatNum(ctx.raw) + ' COP'
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: '#f5f0eb' },
+              ticks: {
+                callback: (v) => '$' + formatNum(v)
+              }
+            },
+            y: {
+              grid: { display: false },
+              ticks: { font: { size: 11 } }
+            }
+          }
+        }
+      });
+    }
+
+    // Doughnut chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    if (statusChartInstance) statusChartInstance.destroy();
+
+    const total = inventoryStatus.ok + inventoryStatus.bajo + inventoryStatus.agotado;
+    if (total === 0) {
+      statusChartInstance = new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Sin productos'],
+          datasets: [{ data: [1], backgroundColor: ['#e0e0e0'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    } else {
+      statusChartInstance = new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['✅ OK', '⚠️ BAJO', '🔴 AGOTADO'],
+          datasets: [{
+            data: [inventoryStatus.ok, inventoryStatus.bajo, inventoryStatus.agotado],
+            backgroundColor: ['#43a047', '#e65100', '#e53935'],
+            borderWidth: 2,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { padding: 16, font: { size: 13 } } },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ` ${ctx.label}: ${ctx.raw} productos`
+              }
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // ── Products Table ────────────────────────────────────────────────────────
+  function filterProducts() {
+    const q = document.getElementById('product-search').value.trim().toLowerCase();
+    filteredProducts = q
+      ? allProducts.filter(p => (p.name || '').toLowerCase().includes(q))
+      : [...allProducts];
+
+    if (productSortCol) {
+      sortProductsBy(productSortCol, false);
+    }
+    productPage = 1;
+    renderProductsPage();
+  }
+
+  function sortProducts(col) {
+    if (productSortCol === col) {
+      productSortDir = productSortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      productSortCol = col;
+      productSortDir = 'asc';
+    }
+    sortProductsBy(col, true);
+    productPage = 1;
+    renderProductsPage();
+  }
+
+  function sortProductsBy(col, updateHeaders) {
+    filteredProducts.sort((a, b) => {
+      let va = a[col] ?? '';
+      let vb = b[col] ?? '';
+      if (typeof va === 'string') va = va.toLowerCase();
+      if (typeof vb === 'string') vb = vb.toLowerCase();
+      if (va < vb) return productSortDir === 'asc' ? -1 : 1;
+      if (va > vb) return productSortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    if (updateHeaders) {
+      document.querySelectorAll('#products-table thead th').forEach(th => {
+        th.classList.remove('sort-asc', 'sort-desc');
+      });
+      const cols = ['name','category','stock','unit','min_stock','cost_price','sell_price','valor','status'];
+      const idx = cols.indexOf(col);
+      if (idx >= 0) {
+        const ths = document.querySelectorAll('#products-table thead th');
+        if (ths[idx]) ths[idx].classList.add(productSortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+      }
+    }
+  }
+
+  function renderProductsPage() {
+    const tbody = document.getElementById('products-tbody');
+    const total = filteredProducts.length;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    productPage = Math.min(productPage, totalPages);
+    productPage = Math.max(productPage, 1);
+
+    const start = (productPage - 1) * PAGE_SIZE;
+    const rows = filteredProducts.slice(start, start + PAGE_SIZE);
+
+    if (rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#aaa;padding:24px;">No hay productos</td></tr>';
+    } else {
+      tbody.innerHTML = rows.map(p => {
+        const statusBadge = p.status === 'OK'
+          ? '<span class="badge badge-ok">🟢 OK</span>'
+          : p.status === 'BAJO'
+            ? '<span class="badge badge-bajo">🟡 BAJO</span>'
+            : '<span class="badge badge-agotado">🔴 AGOTADO</span>';
+        return `<tr>
+          <td><strong>${esc(p.name)}</strong></td>
+          <td>${esc(p.category || '—')}</td>
+          <td>${p.stock ?? 0}</td>
+          <td>${esc(p.unit || '—')}</td>
+          <td>${p.min_stock ?? 0}</td>
+          <td>${formatCOP(p.cost_price)}</td>
+          <td>${formatCOP(p.sell_price)}</td>
+          <td>${formatCOP(p.valor)}</td>
+          <td>${statusBadge}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    document.getElementById('prod-page-info').textContent = `Página ${productPage} de ${totalPages} (${total} productos)`;
+    document.getElementById('prod-prev').disabled = productPage <= 1;
+    document.getElementById('prod-next').disabled = productPage >= totalPages;
+  }
+
+  // ── Movements Table ───────────────────────────────────────────────────────
+  function setMovFilter(type) {
+    movFilterType = type;
+    document.querySelectorAll('[id^="mov-filter-"]').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('mov-filter-' + type).classList.add('active');
+    filterMovements();
+  }
+
+  function filterMovements() {
+    const dateFrom = document.getElementById('mov-date-from').value;
+    const dateTo = document.getElementById('mov-date-to').value;
+
+    filteredMovements = allMovements.filter(m => {
+      if (movFilterType !== 'all' && m.type !== movFilterType) return false;
+      const dateStr = (m.date || m.created_at || '').substring(0, 10);
+      if (dateFrom && dateStr < dateFrom) return false;
+      if (dateTo && dateStr > dateTo) return false;
+      return true;
+    });
+
+    movPage = 1;
+    renderMovementsPage();
+  }
+
+  function renderMovementsPage() {
+    const tbody = document.getElementById('movements-tbody');
+    const total = filteredMovements.length;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    movPage = Math.min(movPage, totalPages);
+    movPage = Math.max(movPage, 1);
+
+    const start = (movPage - 1) * PAGE_SIZE;
+    const rows = filteredMovements.slice(start, start + PAGE_SIZE);
+
+    if (rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:24px;">No hay movimientos</td></tr>';
+    } else {
+      tbody.innerHTML = rows.map(m => {
+        const dateStr = (m.date || m.created_at || '').replace('T', ' ').substring(0, 16);
+        const typeBadge = m.type === 'entrada'
+          ? '<span class="badge badge-entrada">📥 Entrada</span>'
+          : '<span class="badge badge-salida">📤 Salida</span>';
+        return `<tr>
+          <td style="white-space:nowrap;">${esc(dateStr)}</td>
+          <td>${esc(m.product_name || '—')}</td>
+          <td>${typeBadge}</td>
+          <td style="text-align:right;">${m.quantity ?? 0}</td>
+          <td style="text-align:right;">${formatCOP(m.unit_price)}</td>
+          <td style="text-align:right;font-weight:600;">${formatCOP(m.total)}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    document.getElementById('mov-page-info').textContent = `Página ${movPage} de ${totalPages} (${total} movimientos)`;
+    document.getElementById('mov-prev').disabled = movPage <= 1;
+    document.getElementById('mov-next').disabled = movPage >= totalPages;
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function formatNum(n) {
+    return new Intl.NumberFormat('es-CO').format(Math.round(n || 0));
+  }
+
+  function formatCOP(n) {
+    if (!n && n !== 0) return '—';
+    return '$' + formatNum(n);
+  }
+
+  function esc(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  loadData();
+</script>
+</body>
+</html>

@@ -399,6 +399,64 @@ app.post('/report/:userId', async (req, res) => {
   }
 });
 
+// ---- GET /dashboard ----
+app.get('/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/dashboard.html'));
+});
+
+// ---- GET /dashboard/data/:userId ----
+app.get('/dashboard/data/:userId', (req, res) => {
+  const { userId } = req.params;
+  const user = getOrCreateUser(userId);
+  const products = getProducts(userId);
+  const movements = getMovements(userId, 200);
+  const lowStock = getLowStockProducts(userId);
+  const inventoryValue = getInventoryValue(userId);
+
+  // Add status to each product
+  const productsWithStatus = products.map(p => ({
+    ...p,
+    status: p.stock === 0 ? 'AGOTADO' : p.stock <= p.min_stock ? 'BAJO' : 'OK',
+    valor: (p.stock || 0) * (p.cost_price || 0)
+  }));
+
+  // Sales breakdown
+  const ventas = movements.filter(m => m.type === 'salida');
+  const totalVentas = ventas.reduce((s, m) => s + (m.total || 0), 0);
+  const byProduct = {};
+  ventas.forEach(m => {
+    if (!byProduct[m.product_name]) byProduct[m.product_name] = { total: 0, quantity: 0 };
+    byProduct[m.product_name].total += m.total || 0;
+    byProduct[m.product_name].quantity += m.quantity || 0;
+  });
+  const salesBreakdown = Object.entries(byProduct)
+    .map(([name, d]) => ({ name, ...d }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 10);
+
+  // Inventory status counts
+  const inventoryStatus = {
+    ok: productsWithStatus.filter(p => p.status === 'OK').length,
+    bajo: productsWithStatus.filter(p => p.status === 'BAJO').length,
+    agotado: productsWithStatus.filter(p => p.status === 'AGOTADO').length
+  };
+
+  res.json({
+    stats: {
+      totalProducts: products.length,
+      lowStockCount: lowStock.length,
+      inventoryValue,
+      inventoryValueFormatted: '$' + new Intl.NumberFormat('es-CO').format(inventoryValue) + ' COP',
+      totalVentas,
+      totalVentasFormatted: '$' + new Intl.NumberFormat('es-CO').format(totalVentas) + ' COP'
+    },
+    products: productsWithStatus,
+    movements,
+    salesBreakdown,
+    inventoryStatus
+  });
+});
+
 // ---- GET /download/:filename ----
 app.get('/download/:filename', (req, res) => {
   const { filename } = req.params;
