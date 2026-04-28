@@ -454,7 +454,20 @@
     if (r) {
       robotSay(r.reply, r.guide);
     } else {
-      robotSay('Entendido 👍 Puedo ayudarte con productos, stock bajo, ventas o guiarte por los paneles de Odoo.', null);
+      // Real Odoo lookup fallback
+      fetch(`/odoo/products?q=${encodeURIComponent(text)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.ok && data.products && data.products.length) {
+            const p = data.products[0];
+            const qty = (p.qty_available ?? 0);
+            const status = qty <= 0 ? '🔴 Agotado' : qty <= 5 ? '🟡 Bajo' : '🟢 Disponible';
+            robotSay(`📦 <strong>${p.name}</strong><br/>Stock: <strong>${qty}</strong><br/>Precio: $${new Intl.NumberFormat('es-CO').format(p.list_price || 0)} COP<br/>Estado: ${status}`, null);
+          } else {
+            robotSay('No encontré ese producto en Odoo. Intenta con otro nombre 👍', null);
+          }
+        })
+        .catch(() => robotSay('No pude consultar Odoo en este momento.', null));
     }
   }
 

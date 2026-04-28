@@ -3,6 +3,42 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
+const xmlrpc = require('xmlrpc');
+
+
+
+// ── Odoo test env integration ───────────────────────────────────────────────
+const ODOO_URL = process.env.ODOO_URL || '';
+const ODOO_DB = process.env.ODOO_DB || '';
+const ODOO_USER = process.env.ODOO_USER || '';
+const ODOO_API_KEY = process.env.ODOO_API_KEY || '';
+
+async function odooAuth() {
+  if (!ODOO_URL || !ODOO_DB || !ODOO_USER || !ODOO_API_KEY) throw new Error('Faltan credenciales Odoo');
+  const common = xmlrpc.createSecureClient({ url: `${ODOO_URL}/xmlrpc/2/common` });
+  const uid = await new Promise((resolve, reject) => {
+    common.methodCall('authenticate', [ODOO_DB, ODOO_USER, ODOO_API_KEY, {}], (err, value) => {
+      if (err) return reject(err);
+      resolve(value);
+    });
+  });
+  if (!uid) throw new Error('Auth Odoo falló');
+  return uid;
+}
+
+async function odooSearchProducts(query='') {
+  const uid = await odooAuth();
+  const models = xmlrpc.createSecureClient({ url: `${ODOO_URL}/xmlrpc/2/object` });
+  const domain = query ? [[['name', 'ilike', query]]] : [[]];
+  const params = [ODOO_DB, uid, ODOO_API_KEY, 'product.template', 'search_read', domain, { fields: ['name','list_price','qty_available'], limit: 10 }];
+  const rows = await new Promise((resolve, reject) => {
+    models.methodCall('execute_kw', params, (err, value) => {
+      if (err) return reject(err);
+      resolve(value || []);
+    });
+  });
+  return rows;
+}
 
 // ── Integration: notify accounting agent of movements ─────────────────────────
 const ACCOUNTING_URL = process.env.ACCOUNTING_URL || 'http://localhost:3002';
@@ -113,6 +149,28 @@ function formatProductList(products) {
   });
   return `📦 *Inventario:*\n${lines.join('\n')}`;
 }
+
+
+
+// ---- GET /odoo/status ----
+app.get('/odoo/status', async (req, res) => {
+  try {
+    const uid = await odooAuth();
+    res.json({ connected: true, uid, db: ODOO_DB, user: ODOO_USER });
+  } catch (e) {
+    res.status(500).json({ connected: false, error: e.message });
+  }
+});
+
+// ---- GET /odoo/products?q=... ----
+app.get('/odoo/products', async (req, res) => {
+  try {
+    const rows = await odooSearchProducts(req.query.q || '');
+    res.json({ ok: true, count: rows.length, products: rows });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
 
 // ---- GET /status ----
 app.get('/status', (req, res) => {
