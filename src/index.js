@@ -111,6 +111,7 @@ const { generateInventoryReport } = require('./excel/generator');
 
 const app = express();
 const PORT = process.env.PORT || 3003;
+const ODOO_FLOWS_PATH = path.join(__dirname, '../public/odoo-flows.json');
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
@@ -150,6 +151,18 @@ function formatProductList(products) {
   return `📦 *Inventario:*\n${lines.join('\n')}`;
 }
 
+function getOdooFlowsCatalog() {
+  try {
+    if (!fs.existsSync(ODOO_FLOWS_PATH)) {
+      return { version: '1.0.0', flows: [] };
+    }
+    const raw = fs.readFileSync(ODOO_FLOWS_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    return parsed && Array.isArray(parsed.flows) ? parsed : { version: '1.0.0', flows: [] };
+  } catch (e) {
+    return { version: '1.0.0', flows: [], error: e.message };
+  }
+}
 
 
 // ---- GET /odoo/status ----
@@ -170,6 +183,13 @@ app.get('/odoo/products', async (req, res) => {
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }
+});
+
+// ---- GET /odoo/flows ----
+app.get('/odoo/flows', (req, res) => {
+  const catalog = getOdooFlowsCatalog();
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.json(catalog);
 });
 
 // ---- GET /status ----
