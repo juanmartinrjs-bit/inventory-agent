@@ -17,7 +17,8 @@
   const LS_ENABLED = 'odoo.robotTrainer.enabled';
   const LS_OPEN = 'odoo.robotTrainer.open';
   const LS_WAIT_CLICK = 'odoo.robotTrainer.waitClick';
-  const AGENT_BASE_URL = 'http://localhost:3003';
+  // Public endpoint (not localhost) so it works on other machines
+  const AGENT_BASE_URL = 'https://acrostically-grottoed-yulanda.ngrok-free.dev';
 
   const EMBEDDED_FLOWS = {
     version: '1.0.0',
