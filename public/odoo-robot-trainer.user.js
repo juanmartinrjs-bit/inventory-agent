@@ -19,6 +19,7 @@
   const LS_WAIT_CLICK = 'odoo.robotTrainer.waitClick';
   // Public endpoint (not localhost) so it works on other machines
   const AGENT_BASE_URL = 'https://acrostically-grottoed-yulanda.ngrok-free.dev';
+  const ALLOWED_FLOW_ID = 'inventario_transferencia_interna';
 
   const EMBEDDED_FLOWS = {
     version: '1.0.0',
@@ -74,12 +75,7 @@
     if (!txt) return null;
 
     const map = [
-      { intent: 'vender_productos', patterns: ['vender productos', 'venta', 'vender'] },
-      { intent: 'ingresar_pedido', patterns: ['ingresar pedido', 'recibir mercancia', 'recibir mercancia', 'compra'] },
-      { intent: 'devoluciones', patterns: ['devoluciones', 'devolucion', 'devolver'] },
-      { intent: 'transferencias', patterns: ['transferencias entre bodegas', 'transferencias entre sedes', 'transferencia interna'] },
-      { intent: 'apertura_pv', patterns: ['apertura punto de venta', 'abrir punto de venta', 'apertura pos'] },
-      { intent: 'cierre_caja', patterns: ['cierre de caja', 'cerrar caja', 'cierre punto de venta'] }
+      { intent: 'transferencias', patterns: ['transferencia interna a otro punto de venta','transferencia interna','transferencias entre bodegas','transferencias entre sedes'] }
     ];
 
     for (const entry of map) {
@@ -176,7 +172,7 @@
     if (!list) return;
     list.innerHTML = '';
 
-    const flows = (state.flowsCatalog && state.flowsCatalog.flows) || [];
+    const flows = ((state.flowsCatalog && state.flowsCatalog.flows) || []).filter(f => f.id === ALLOWED_FLOW_ID);
     flows.forEach(flow => {
       const btn = document.createElement('button');
       btn.className = 'odoo-robot-flow-btn';
@@ -266,13 +262,13 @@
 
     const intent = parseIntent(cmd);
     if (!intent) {
-      setStatus('No entendí el comando. Prueba: "vender productos" o "devoluciones".');
+      setStatus('⚠️ Este robot solo está autorizado para: Transferencia interna a otro punto de venta.');
       return;
     }
 
     const matches = (state.flowsCatalog.flows || []).filter(f => flowMatchesIntent(f, intent));
     if (!matches.length) {
-      setStatus(`No encontré flujos para: ${intent}`);
+      setStatus('⚠️ No autorizado. Este robot solo muestra el flujo de transferencia interna a otro punto de venta.');
       return;
     }
 
@@ -343,7 +339,7 @@
           <input id="odoo-robot-wait-click" type="checkbox" ${state.waitClickMode ? 'checked' : ''}>
           <label for="odoo-robot-wait-click">Esperando clic para avanzar</label>
         </div>
-        <input id="odoo-robot-input" placeholder="Escribe: vender productos / devoluciones / cierre de caja">
+        <input id="odoo-robot-input" placeholder="Escribe: transferencia interna a otro punto de venta">
         <div class="odoo-robot-controls">
           <button id="odoo-robot-send">Iniciar comando</button>
           <button id="odoo-robot-prev">Anterior</button>
@@ -431,7 +427,7 @@
     state.flowsCatalog = remote || EMBEDDED_FLOWS;
     renderFlowList();
     renderStep();
-    setStatus(remote ? 'Catálogo cargado desde inventory-agent.' : 'Usando catálogo embebido (fallback).');
+    setStatus('✅ Autorizado: Transferencia interna a otro punto de venta');
   }
 
   init();
