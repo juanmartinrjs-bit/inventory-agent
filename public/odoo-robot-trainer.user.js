@@ -14,6 +14,8 @@
 (function () {
   'use strict';
 
+  window.__odooRobotTrainerLoaded = true;
+
   const LS_ENABLED = 'odoo.robotTrainer.enabled';
   const LS_OPEN = 'odoo.robotTrainer.open';
   const LS_WAIT_CLICK = 'odoo.robotTrainer.waitClick';
@@ -277,7 +279,7 @@
   }
 
   function buildUI() {
-    GM_addStyle(`
+    (typeof GM_addStyle === "function" ? GM_addStyle : (css=>{const st=document.createElement("style");st.textContent=css;document.head.appendChild(st);}))( `
       #odoo-robot-btn {
         position: fixed; right: 20px; bottom: 24px; z-index: 999999;
         width: 56px; height: 56px; border-radius: 50%; border: none;
