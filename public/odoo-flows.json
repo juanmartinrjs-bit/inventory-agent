@@ -6,355 +6,662 @@
     {
       "id": "ventas_crear_cotizacion",
       "title": "Ventas · Crear cotización",
-      "intentKeywords": ["vender productos", "vender", "cotizacion", "cotización", "venta"],
+      "intentKeywords": [
+        "vender productos",
+        "vender",
+        "cotizacion",
+        "cotización",
+        "venta"
+      ],
       "module": "ventas",
       "steps": [
         {
           "id": "vcc_1",
           "title": "Abrir módulo Ventas",
           "instruction": "Haz clic en Ventas desde el dashboard principal.",
-          "selectorCandidates": ["a[data-menu-xmlid='sale.sale_menu_root']", "a[href*='#menu_id'][href*='sale']", ".o_app[data-menu-xmlid='sale.sale_menu_root']"],
-          "fallbackText": ["Si no lo ves, abre el menú de Apps y busca 'Ventas'."]
+          "selectorCandidates": [
+            "a[data-menu-xmlid='sale.sale_menu_root']",
+            "a[href*='#menu_id'][href*='sale']",
+            ".o_app[data-menu-xmlid='sale.sale_menu_root']"
+          ],
+          "fallbackText": [
+            "Si no lo ves, abre el menú de Apps y busca 'Ventas'."
+          ]
         },
         {
           "id": "vcc_2",
           "title": "Nueva cotización",
           "instruction": "Haz clic en Nuevo para crear una cotización.",
-          "selectorCandidates": ["button.o_list_button_add", "button.btn-primary.o-kanban-button-new", "button:has(.fa-plus)"],
-          "fallbackText": ["En vista lista o kanban, el botón suele llamarse 'Nuevo'."]
+          "selectorCandidates": [
+            "button.o_list_button_add",
+            "button.btn-primary.o-kanban-button-new",
+            "button:has(.fa-plus)"
+          ],
+          "fallbackText": [
+            "En vista lista o kanban, el botón suele llamarse 'Nuevo'."
+          ]
         },
         {
           "id": "vcc_3",
           "title": "Seleccionar cliente",
           "instruction": "Completa el campo Cliente.",
-          "selectorCandidates": ["div[name='partner_id'] input", "input[name='partner_id']", ".o_field_widget[name='partner_id'] input"],
-          "fallbackText": ["Escribe nombre o NIT del cliente y selecciónalo del autocompletado."]
+          "selectorCandidates": [
+            "div[name='partner_id'] input",
+            "input[name='partner_id']",
+            ".o_field_widget[name='partner_id'] input"
+          ],
+          "fallbackText": [
+            "Escribe nombre o NIT del cliente y selecciónalo del autocompletado."
+          ]
         },
         {
           "id": "vcc_4",
           "title": "Agregar producto",
           "instruction": "En líneas de pedido agrega los productos y cantidades.",
-          "selectorCandidates": ["a[role='button'][name='add_line']", ".o_field_x2many_list_row_add a", "table.o_list_table td[name='product_template_id'] input"],
-          "fallbackText": ["Puedes usar 'Agregar un producto' en la tabla de líneas."]
+          "selectorCandidates": [
+            "a[role='button'][name='add_line']",
+            ".o_field_x2many_list_row_add a",
+            "table.o_list_table td[name='product_template_id'] input"
+          ],
+          "fallbackText": [
+            "Puedes usar 'Agregar un producto' en la tabla de líneas."
+          ]
         }
       ]
     },
     {
       "id": "ventas_confirmar_pedido",
       "title": "Ventas · Confirmar pedido",
-      "intentKeywords": ["vender productos", "confirmar pedido", "pedido de venta"],
+      "intentKeywords": [
+        "vender productos",
+        "confirmar pedido",
+        "pedido de venta"
+      ],
       "module": "ventas",
       "steps": [
         {
           "id": "vcp_1",
           "title": "Abrir cotización",
           "instruction": "Abre la cotización en estado borrador.",
-          "selectorCandidates": [".o_data_row", ".o_kanban_record", "table.o_list_table tbody tr"],
-          "fallbackText": ["Filtra por 'Borrador' o por nombre del cliente."]
+          "selectorCandidates": [
+            ".o_data_row",
+            ".o_kanban_record",
+            "table.o_list_table tbody tr"
+          ],
+          "fallbackText": [
+            "Filtra por 'Borrador' o por nombre del cliente."
+          ]
         },
         {
           "id": "vcp_2",
           "title": "Confirmar",
           "instruction": "Haz clic en Confirmar para convertir en pedido de venta.",
-          "selectorCandidates": ["button[name='action_confirm']", "button.btn-primary", "button:contains('Confirmar')"],
-          "fallbackText": ["El botón aparece en la barra superior del formulario."]
+          "selectorCandidates": [
+            "button[name='action_confirm']",
+            "button.btn-primary",
+            "button:contains('Confirmar')"
+          ],
+          "fallbackText": [
+            "El botón aparece en la barra superior del formulario."
+          ]
         },
         {
           "id": "vcp_3",
           "title": "Validar estado",
           "instruction": "Verifica que el pedido quede en estado Pedido de venta.",
-          "selectorCandidates": [".o_statusbar_status .o_arrow_button_current", ".badge:contains('Pedido')"],
-          "fallbackText": ["Debe dejar de estar en cotización y pasar a pedido confirmado."]
+          "selectorCandidates": [
+            ".o_statusbar_status .o_arrow_button_current",
+            ".badge:contains('Pedido')"
+          ],
+          "fallbackText": [
+            "Debe dejar de estar en cotización y pasar a pedido confirmado."
+          ]
         }
       ]
     },
     {
       "id": "ventas_entregar_productos",
       "title": "Ventas · Entregar productos",
-      "intentKeywords": ["vender productos", "entregar", "despacho"],
+      "intentKeywords": [
+        "vender productos",
+        "entregar",
+        "despacho"
+      ],
       "module": "inventario",
       "steps": [
         {
           "id": "vep_1",
           "title": "Abrir entrega",
           "instruction": "Desde el pedido, entra al smart button Entrega.",
-          "selectorCandidates": ["button[name='action_view_delivery']", ".oe_stat_button[name='action_view_delivery']", "a:contains('Entrega')"],
-          "fallbackText": ["También puedes entrar por Inventario > Operaciones > Transferencias."]
+          "selectorCandidates": [
+            "button[name='action_view_delivery']",
+            ".oe_stat_button[name='action_view_delivery']",
+            "a:contains('Entrega')"
+          ],
+          "fallbackText": [
+            "También puedes entrar por Inventario > Operaciones > Transferencias."
+          ]
         },
         {
           "id": "vep_2",
           "title": "Reservar cantidades",
           "instruction": "Haz clic en Verificar disponibilidad / Comprobar disponibilidad.",
-          "selectorCandidates": ["button[name='action_assign']", "button:contains('Comprobar disponibilidad')"],
-          "fallbackText": ["Si ya está reservado, continúa al siguiente paso."]
+          "selectorCandidates": [
+            "button[name='action_assign']",
+            "button:contains('Comprobar disponibilidad')"
+          ],
+          "fallbackText": [
+            "Si ya está reservado, continúa al siguiente paso."
+          ]
         },
         {
           "id": "vep_3",
           "title": "Validar entrega",
           "instruction": "Haz clic en Validar para completar la entrega.",
-          "selectorCandidates": ["button[name='button_validate']", "button.btn-primary:contains('Validar')"],
-          "fallbackText": ["Confirma cantidades hechas antes de validar."]
+          "selectorCandidates": [
+            "button[name='button_validate']",
+            "button.btn-primary:contains('Validar')"
+          ],
+          "fallbackText": [
+            "Confirma cantidades hechas antes de validar."
+          ]
         }
       ]
     },
     {
       "id": "ventas_registrar_pago",
       "title": "Ventas · Registrar pago",
-      "intentKeywords": ["vender productos", "registrar pago", "cobro"],
+      "intentKeywords": [
+        "vender productos",
+        "registrar pago",
+        "cobro"
+      ],
       "module": "facturacion",
       "steps": [
         {
           "id": "vrp_1",
           "title": "Abrir factura",
           "instruction": "Abre la factura del cliente.",
-          "selectorCandidates": [".o_data_row", ".o_kanban_record", "a[href*='account.move']"],
-          "fallbackText": ["Ve a Facturación > Clientes > Facturas."]
+          "selectorCandidates": [
+            ".o_data_row",
+            ".o_kanban_record",
+            "a[href*='account.move']"
+          ],
+          "fallbackText": [
+            "Ve a Facturación > Clientes > Facturas."
+          ]
         },
         {
           "id": "vrp_2",
           "title": "Confirmar factura",
           "instruction": "Si está borrador, haz clic en Confirmar / Publicar.",
-          "selectorCandidates": ["button[name='action_post']", "button:contains('Publicar')"],
-          "fallbackText": ["La factura debe quedar en estado Publicado."]
+          "selectorCandidates": [
+            "button[name='action_post']",
+            "button:contains('Publicar')"
+          ],
+          "fallbackText": [
+            "La factura debe quedar en estado Publicado."
+          ]
         },
         {
           "id": "vrp_3",
           "title": "Registrar pago",
           "instruction": "Haz clic en Registrar pago y completa diario/método.",
-          "selectorCandidates": ["button[name='action_register_payment']", "button:contains('Registrar pago')"],
-          "fallbackText": ["Selecciona caja o banco y confirma el pago."]
+          "selectorCandidates": [
+            "button[name='action_register_payment']",
+            "button:contains('Registrar pago')"
+          ],
+          "fallbackText": [
+            "Selecciona caja o banco y confirma el pago."
+          ]
         }
       ]
     },
     {
       "id": "compras_crear_rfq",
       "title": "Compras · Crear solicitud de cotización (RFQ)",
-      "intentKeywords": ["ingresar pedido", "recibir mercancía", "compras", "rfq", "pedido compra"],
+      "intentKeywords": [
+        "ingresar pedido",
+        "recibir mercancía",
+        "compras",
+        "rfq",
+        "pedido compra"
+      ],
       "module": "compras",
       "steps": [
         {
           "id": "ccr_1",
           "title": "Abrir módulo Compras",
           "instruction": "Entra al módulo Compras.",
-          "selectorCandidates": ["a[data-menu-xmlid='purchase.menu_purchase_root']", ".o_app[data-menu-xmlid='purchase.menu_purchase_root']"],
-          "fallbackText": ["Desde Apps, busca 'Compras'."]
+          "selectorCandidates": [
+            "a[data-menu-xmlid='purchase.menu_purchase_root']",
+            ".o_app[data-menu-xmlid='purchase.menu_purchase_root']"
+          ],
+          "fallbackText": [
+            "Desde Apps, busca 'Compras'."
+          ]
         },
         {
           "id": "ccr_2",
           "title": "Nueva RFQ",
           "instruction": "Haz clic en Nuevo.",
-          "selectorCandidates": ["button.o_list_button_add", "button.btn-primary.o-kanban-button-new"],
-          "fallbackText": ["El botón aparece arriba a la izquierda."]
+          "selectorCandidates": [
+            "button.o_list_button_add",
+            "button.btn-primary.o-kanban-button-new"
+          ],
+          "fallbackText": [
+            "El botón aparece arriba a la izquierda."
+          ]
         },
         {
           "id": "ccr_3",
           "title": "Proveedor y productos",
           "instruction": "Completa proveedor, producto, cantidades y precio.",
-          "selectorCandidates": ["div[name='partner_id'] input", "table.o_list_table td[name='product_id'] input", "td[name='product_qty'] input"],
-          "fallbackText": ["Agrega líneas en la tabla inferior del pedido de compra."]
+          "selectorCandidates": [
+            "div[name='partner_id'] input",
+            "table.o_list_table td[name='product_id'] input",
+            "td[name='product_qty'] input"
+          ],
+          "fallbackText": [
+            "Agrega líneas en la tabla inferior del pedido de compra."
+          ]
         }
       ]
     },
     {
       "id": "compras_confirmar_po",
       "title": "Compras · Confirmar orden de compra",
-      "intentKeywords": ["ingresar pedido", "confirmar compra", "orden de compra"],
+      "intentKeywords": [
+        "ingresar pedido",
+        "confirmar compra",
+        "orden de compra"
+      ],
       "module": "compras",
       "steps": [
         {
           "id": "ccp_1",
           "title": "Abrir RFQ",
           "instruction": "Abre la solicitud de cotización.",
-          "selectorCandidates": [".o_data_row", ".o_kanban_record"],
-          "fallbackText": ["Filtra por estado RFQ para ubicarla rápido."]
+          "selectorCandidates": [
+            ".o_data_row",
+            ".o_kanban_record"
+          ],
+          "fallbackText": [
+            "Filtra por estado RFQ para ubicarla rápido."
+          ]
         },
         {
           "id": "ccp_2",
           "title": "Confirmar orden",
           "instruction": "Haz clic en Confirmar pedido.",
-          "selectorCandidates": ["button[name='button_confirm']", "button:contains('Confirmar pedido')"],
-          "fallbackText": ["Al confirmar, se genera recepción en inventario."]
+          "selectorCandidates": [
+            "button[name='button_confirm']",
+            "button:contains('Confirmar pedido')"
+          ],
+          "fallbackText": [
+            "Al confirmar, se genera recepción en inventario."
+          ]
         },
         {
           "id": "ccp_3",
           "title": "Revisar recepción",
           "instruction": "Abre el smart button Recepción para seguir el ingreso.",
-          "selectorCandidates": ["button[name='action_view_picking']", "a:contains('Recepción')"],
-          "fallbackText": ["También puedes ir por Inventario > Operaciones > Transferencias."]
+          "selectorCandidates": [
+            "button[name='action_view_picking']",
+            "a:contains('Recepción')"
+          ],
+          "fallbackText": [
+            "También puedes ir por Inventario > Operaciones > Transferencias."
+          ]
         }
       ]
     },
     {
       "id": "compras_recibir_mercancia",
       "title": "Compras · Recibir mercancía",
-      "intentKeywords": ["recibir mercancía", "ingresar pedido", "entrada inventario"],
+      "intentKeywords": [
+        "recibir mercancía",
+        "ingresar pedido",
+        "entrada inventario"
+      ],
       "module": "inventario",
       "steps": [
         {
           "id": "crm_1",
           "title": "Abrir transferencia de entrada",
           "instruction": "En Inventario, abre la recepción pendiente.",
-          "selectorCandidates": ["a[data-menu-xmlid='stock.menu_stock_warehouse_mgmt']", ".o_data_row", ".o_kanban_record"],
-          "fallbackText": ["Busca transferencias tipo Recepciones."]
+          "selectorCandidates": [
+            "a[data-menu-xmlid='stock.menu_stock_warehouse_mgmt']",
+            ".o_data_row",
+            ".o_kanban_record"
+          ],
+          "fallbackText": [
+            "Busca transferencias tipo Recepciones."
+          ]
         },
         {
           "id": "crm_2",
           "title": "Registrar cantidades",
           "instruction": "Carga cantidades hechas / recibidas.",
-          "selectorCandidates": ["input[name='quantity']", "td[name='quantity_done'] input", "button:contains('Operaciones detalladas')"],
-          "fallbackText": ["Si recibiste todo, usa establecer cantidades hechas."]
+          "selectorCandidates": [
+            "input[name='quantity']",
+            "td[name='quantity_done'] input",
+            "button:contains('Operaciones detalladas')"
+          ],
+          "fallbackText": [
+            "Si recibiste todo, usa establecer cantidades hechas."
+          ]
         },
         {
           "id": "crm_3",
           "title": "Validar recepción",
           "instruction": "Haz clic en Validar para finalizar ingreso.",
-          "selectorCandidates": ["button[name='button_validate']", "button:contains('Validar')"],
-          "fallbackText": ["Confirma backorder si aplica."]
+          "selectorCandidates": [
+            "button[name='button_validate']",
+            "button:contains('Validar')"
+          ],
+          "fallbackText": [
+            "Confirma backorder si aplica."
+          ]
         }
       ]
     },
     {
       "id": "inventario_devolucion_venta",
       "title": "Inventario · Devolución de venta",
-      "intentKeywords": ["devoluciones", "devolución cliente", "retorno"],
+      "intentKeywords": [
+        "devoluciones",
+        "devolución cliente",
+        "retorno"
+      ],
       "module": "inventario",
       "steps": [
         {
           "id": "idv_1",
           "title": "Abrir entrega validada",
           "instruction": "Ubica la entrega original ya validada.",
-          "selectorCandidates": [".o_data_row", ".o_kanban_record", "input.o_searchview_input"],
-          "fallbackText": ["Filtra por cliente o referencia de transferencia."]
+          "selectorCandidates": [
+            ".o_data_row",
+            ".o_kanban_record",
+            "input.o_searchview_input"
+          ],
+          "fallbackText": [
+            "Filtra por cliente o referencia de transferencia."
+          ]
         },
         {
           "id": "idv_2",
           "title": "Crear devolución",
           "instruction": "Haz clic en Devolver.",
-          "selectorCandidates": ["button[name='action_return']", "button:contains('Devolver')"],
-          "fallbackText": ["El botón suele estar en el formulario de transferencia."]
+          "selectorCandidates": [
+            "button[name='action_return']",
+            "button:contains('Devolver')"
+          ],
+          "fallbackText": [
+            "El botón suele estar en el formulario de transferencia."
+          ]
         },
         {
           "id": "idv_3",
           "title": "Confirmar cantidades y validar",
           "instruction": "Ajusta cantidades y valida la transferencia de retorno.",
-          "selectorCandidates": ["button.btn-primary", "button[name='create_returns']", "button[name='button_validate']"],
-          "fallbackText": ["Confirma el asistente y luego valida el movimiento."]
+          "selectorCandidates": [
+            "button.btn-primary",
+            "button[name='create_returns']",
+            "button[name='button_validate']"
+          ],
+          "fallbackText": [
+            "Confirma el asistente y luego valida el movimiento."
+          ]
         }
       ]
     },
     {
       "id": "inventario_devolucion_compra",
       "title": "Inventario · Devolución a proveedor",
-      "intentKeywords": ["devoluciones", "devolución proveedor", "retornar compra"],
+      "intentKeywords": [
+        "devoluciones",
+        "devolución proveedor",
+        "retornar compra"
+      ],
       "module": "inventario",
       "steps": [
         {
           "id": "idc_1",
           "title": "Abrir recepción validada",
           "instruction": "Ubica la recepción que deseas devolver.",
-          "selectorCandidates": [".o_data_row", ".o_kanban_record"],
-          "fallbackText": ["Filtra por proveedor o referencia del picking."]
+          "selectorCandidates": [
+            ".o_data_row",
+            ".o_kanban_record"
+          ],
+          "fallbackText": [
+            "Filtra por proveedor o referencia del picking."
+          ]
         },
         {
           "id": "idc_2",
           "title": "Botón Devolver",
           "instruction": "Haz clic en Devolver para crear la salida al proveedor.",
-          "selectorCandidates": ["button[name='action_return']", "button:contains('Devolver')"],
-          "fallbackText": ["Aparece en recepciones ya validadas."]
+          "selectorCandidates": [
+            "button[name='action_return']",
+            "button:contains('Devolver')"
+          ],
+          "fallbackText": [
+            "Aparece en recepciones ya validadas."
+          ]
         },
         {
           "id": "idc_3",
           "title": "Validar devolución",
           "instruction": "Revisa cantidades y valida la devolución.",
-          "selectorCandidates": ["button[name='create_returns']", "button[name='button_validate']"],
-          "fallbackText": ["Completa el wizard y valida la transferencia."]
+          "selectorCandidates": [
+            "button[name='create_returns']",
+            "button[name='button_validate']"
+          ],
+          "fallbackText": [
+            "Completa el wizard y valida la transferencia."
+          ]
         }
       ]
     },
     {
       "id": "inventario_transferencia_interna",
-      "title": "Inventario · Transferencias entre bodegas/sedes",
-      "intentKeywords": ["transferencias entre bodegas", "transferencias entre sedes", "transferencia interna"],
+      "title": "Transferencia interna a otro punto de venta",
+      "intentKeywords": [
+        "transferencia interna a otro punto de venta",
+        "transferencia interna",
+        "transferencias entre sedes",
+        "transferencias entre bodegas",
+        "mover inventario entre puntos"
+      ],
       "module": "inventario",
       "steps": [
         {
-          "id": "iti_1",
-          "title": "Nueva transferencia interna",
-          "instruction": "En Inventario > Operaciones, crea una transferencia interna.",
-          "selectorCandidates": ["a[data-menu-xmlid='stock.menu_stock_internal_transfer']", "button.o_list_button_add"],
-          "fallbackText": ["Si no existe menú directo, entra a Transferencias y crea una nueva."]
+          "id": "tipv_1",
+          "title": "Entrar a Inventario",
+          "instruction": "Desde el dashboard principal, haz clic en Inventario.",
+          "selectorCandidates": [
+            "a[data-menu-xmlid=\"stock.menu_stock_root\"]",
+            ".o_app[data-menu-xmlid=\"stock.menu_stock_root\"]",
+            "a:contains(\"Inventario\")"
+          ],
+          "fallbackText": [
+            "Busca el recuadro/app \"Inventario\" y entra allí."
+          ]
         },
         {
-          "id": "iti_2",
-          "title": "Origen y destino",
-          "instruction": "Define ubicación origen y ubicación destino (bodega/sede).",
-          "selectorCandidates": ["div[name='location_id'] input", "div[name='location_dest_id'] input"],
-          "fallbackText": ["Elige ubicaciones internas correctas para mover stock."]
+          "id": "tipv_2",
+          "title": "Abrir Operaciones",
+          "instruction": "En la barra superior del módulo Inventario, haz clic en Operaciones.",
+          "selectorCandidates": [
+            "a[data-menu-xmlid=\"stock.menu_stock_warehouse_mgmt\"]",
+            "a:contains(\"Operaciones\")"
+          ],
+          "fallbackText": [
+            "Ubica la pestaña \"Operaciones\" en el menú superior."
+          ]
         },
         {
-          "id": "iti_3",
-          "title": "Productos y validar",
-          "instruction": "Agrega productos/cantidades y valida la transferencia.",
-          "selectorCandidates": ["td[name='product_id'] input", "td[name='quantity'] input", "button[name='button_validate']"],
-          "fallbackText": ["Primero puedes reservar, luego validar."]
+          "id": "tipv_3",
+          "title": "Entrar a Transferencias internas",
+          "instruction": "Haz clic en Transferencias internas.",
+          "selectorCandidates": [
+            "a[data-menu-xmlid=\"stock.menu_stock_internal_transfer\"]",
+            "a:contains(\"Transferencias internas\")"
+          ],
+          "fallbackText": [
+            "Si no aparece directo, entra a Transferencias y filtra tipo Interna."
+          ]
+        },
+        {
+          "id": "tipv_4",
+          "title": "Crear nueva transferencia",
+          "instruction": "Haz clic en el botón Nuevo (arriba a la izquierda).",
+          "selectorCandidates": [
+            "button.o_list_button_add",
+            "button:contains(\"Nuevo\")"
+          ],
+          "fallbackText": [
+            "El botón Nuevo está en la esquina superior izquierda de la lista."
+          ]
+        },
+        {
+          "id": "tipv_5",
+          "title": "Definir origen y destino",
+          "instruction": "Selecciona ubicación origen y ubicación destino (punto de venta destino).",
+          "selectorCandidates": [
+            "div[name=\"location_id\"] input",
+            "div[name=\"location_dest_id\"] input"
+          ],
+          "fallbackText": [
+            "Completa \"Ubicación origen\" y \"Ubicación destino\" con las sedes correctas."
+          ]
+        },
+        {
+          "id": "tipv_6",
+          "title": "Agregar productos",
+          "instruction": "Agrega productos y cantidades a transferir.",
+          "selectorCandidates": [
+            "td[name=\"product_id\"] input",
+            "td[name=\"quantity\"] input",
+            "a[role=\"button\"][name=\"add_line\"]"
+          ],
+          "fallbackText": [
+            "En líneas de operación, agrega producto y cantidad."
+          ]
+        },
+        {
+          "id": "tipv_7",
+          "title": "Validar transferencia",
+          "instruction": "Haz clic en Validar para confirmar la transferencia interna.",
+          "selectorCandidates": [
+            "button[name=\"button_validate\"]",
+            "button:contains(\"Validar\")"
+          ],
+          "fallbackText": [
+            "Revisa cantidades y luego presiona Validar."
+          ]
         }
       ]
     },
     {
       "id": "pos_apertura",
       "title": "Punto de Venta · Apertura de sesión",
-      "intentKeywords": ["apertura punto de venta", "abrir punto de venta", "apertura pos"],
+      "intentKeywords": [
+        "apertura punto de venta",
+        "abrir punto de venta",
+        "apertura pos"
+      ],
       "module": "pos",
       "steps": [
         {
           "id": "posa_1",
           "title": "Entrar a Punto de Venta",
           "instruction": "Abre el módulo Punto de Venta.",
-          "selectorCandidates": ["a[data-menu-xmlid='point_of_sale.menu_point_root']", ".o_app[data-menu-xmlid='point_of_sale.menu_point_root']"],
-          "fallbackText": ["Busca la app 'Punto de venta' en el dashboard."]
+          "selectorCandidates": [
+            "a[data-menu-xmlid='point_of_sale.menu_point_root']",
+            ".o_app[data-menu-xmlid='point_of_sale.menu_point_root']"
+          ],
+          "fallbackText": [
+            "Busca la app 'Punto de venta' en el dashboard."
+          ]
         },
         {
           "id": "posa_2",
           "title": "Abrir sesión",
           "instruction": "Haz clic en Nueva sesión / Reanudar.",
-          "selectorCandidates": ["button:contains('Nueva sesión')", "button:contains('Reanudar')", ".o_pos_kanban button"],
-          "fallbackText": ["Selecciona la tienda/caja correspondiente."]
+          "selectorCandidates": [
+            "button:contains('Nueva sesión')",
+            "button:contains('Reanudar')",
+            ".o_pos_kanban button"
+          ],
+          "fallbackText": [
+            "Selecciona la tienda/caja correspondiente."
+          ]
         },
         {
           "id": "posa_3",
           "title": "Fondo de caja",
           "instruction": "Ingresa el monto inicial de caja y confirma.",
-          "selectorCandidates": ["input[name='opening_cash']", "button:contains('Abrir sesión')", "button.btn-primary"],
-          "fallbackText": ["En algunas versiones aparece un popup de apertura de caja."]
+          "selectorCandidates": [
+            "input[name='opening_cash']",
+            "button:contains('Abrir sesión')",
+            "button.btn-primary"
+          ],
+          "fallbackText": [
+            "En algunas versiones aparece un popup de apertura de caja."
+          ]
         }
       ]
     },
     {
       "id": "pos_cierre_caja",
       "title": "Punto de Venta · Cierre de caja",
-      "intentKeywords": ["cierre de caja", "cerrar caja", "cierre punto de venta"],
+      "intentKeywords": [
+        "cierre de caja",
+        "cerrar caja",
+        "cierre punto de venta"
+      ],
       "module": "pos",
       "steps": [
         {
           "id": "posc_1",
           "title": "Entrar al backend POS",
           "instruction": "Desde la sesión POS, entra al menú de cierre/backoffice.",
-          "selectorCandidates": ["button:contains('Cerrar')", "button:contains('Back to')", "button:contains('Menú')"],
-          "fallbackText": ["Usa el botón superior derecho del POS para opciones de sesión."]
+          "selectorCandidates": [
+            "button:contains('Cerrar')",
+            "button:contains('Back to')",
+            "button:contains('Menú')"
+          ],
+          "fallbackText": [
+            "Usa el botón superior derecho del POS para opciones de sesión."
+          ]
         },
         {
           "id": "posc_2",
           "title": "Revisar movimientos",
           "instruction": "Verifica ventas, pagos y diferencias de caja.",
-          "selectorCandidates": [".pos-session-summary", "button:contains('Resumen')", "button:contains('Pagos')"],
-          "fallbackText": ["Compara efectivo contado vs esperado."]
+          "selectorCandidates": [
+            ".pos-session-summary",
+            "button:contains('Resumen')",
+            "button:contains('Pagos')"
+          ],
+          "fallbackText": [
+            "Compara efectivo contado vs esperado."
+          ]
         },
         {
           "id": "posc_3",
           "title": "Cerrar sesión",
           "instruction": "Haz clic en Cerrar sesión y confirma el cierre de caja.",
-          "selectorCandidates": ["button:contains('Cerrar sesión')", "button:contains('Validate Closing')", "button.btn-primary"],
-          "fallbackText": ["Si hay diferencia, registra motivo antes de confirmar."]
+          "selectorCandidates": [
+            "button:contains('Cerrar sesión')",
+            "button:contains('Validate Closing')",
+            "button.btn-primary"
+          ],
+          "fallbackText": [
+            "Si hay diferencia, registra motivo antes de confirmar."
+          ]
         }
       ]
     }
